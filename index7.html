@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Школьный портал</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .welcome-title {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .btn {
+            padding: 20px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+        }
+        .schedule-btn { 
+            background: #4CAF50; 
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        .schedule-btn:hover { 
+            background: #45a049; 
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        .admin-btn { 
+            background: #2196F3; 
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        .admin-btn:hover { 
+            background: #1976D2; 
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            margin: 20px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .input-group {
+            position: relative;
+            margin: 10px 0;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #666;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .error {
+            color: red;
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        /* Стили для админ панели */
+        .admin-panel, .schedule-panel {
+            display: none;
+            background: white;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            width: 90%;
+        }
+        .admin-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .admin-panel-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .create-schedule-btn { background: #FF9800; }
+        .create-schedule-btn:hover { background: #F57C00; }
+        .logout-btn { background: #f44336; }
+        .logout-btn:hover { background: #d32f2f; }
+        
+        .schedule-list {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .schedule-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* Стили для календаря */
+        .calendar-container {
+            margin: 10px 0;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .calendar-nav {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .calendar-table th {
+            background: #f5f5f5;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .calendar-table td {
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+        .calendar-table td:hover {
+            background: #e3f2fd;
+        }
+        .calendar-table td.selected {
+            background: #2196F3;
+            color: white;
+        }
+        .calendar-table td.other-month {
+            color: #ccc;
+        }
+        .date-display {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        /* Стили для расписания */
+        .schedule-items {
+            margin: 20px 0;
+        }
+        .schedule-card {
+            background: #f8f9fa;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .no-schedule {
+            color: #888;
+            text-align: center;
+            font-style: italic;
+            padding: 40px;
+            font-size: 18px;
+        }
+        .schedule-date {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .schedule-title {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .schedule-time {
+            color: #666;
+            font-size: 14px;
+        }
+        .schedule-description {
+            color: #555;
+            font-size: 13px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Главное меню -->
+    <div id="mainMenu">
+        <div class="welcome-title">ДОБРО ПОЖАЛОВАТЬ В САЙТ ОТ ВАЛЕРКИ ПРО 2.0</div>
+        <div class="main-menu">
+            <button class="btn schedule-btn" onclick="showSchedulePanel()">📅 Расписание</button>
+            <button class="btn admin-btn" onclick="showLogin()">🔐 Админ панель</button>
+        </div>
+    </div>
+
+    <!-- Модалка входа -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h3>Вход в админку</h3>
+            <form onsubmit="return checkLogin()">
+                <div class="input-group">
+                    <input type="text" id="login" placeholder="Логин" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Пароль" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
+                </div>
+                <button type="submit" class="submit-btn">Войти</button>
+                <div id="error" class="error">Ошибка входа!</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Админ панель -->
+    <div id="adminPanel" class="admin-panel">
+        <h2>👨‍💼 Админ панель</h2>
+        <p>Добро пожаловать, Valera_Admin!</p>
+        
+        <div class="admin-buttons">
+            <button class="admin-panel-btn create-schedule-btn" onclick="showCreateScheduleModal()">
+                📝 Создать расписание
+            </button>
+            <button class="admin-panel-btn logout-btn" onclick="logoutAdmin()">
+                🚪 Выйти
+            </button>
+        </div>
+
+        <!-- Список созданных расписаний -->
+        <h3>Созданные расписания:</h3>
+        <div id="scheduleList" class="schedule-list">
+            <div class="schedule-item">Пока нет расписаний</div>
+        </div>
+    </div>
+
+    <!-- Панель расписания -->
+    <div id="schedulePanel" class="schedule-panel">
+        <h2>📅 Расписание</h2>
+        
+        <div class="schedule-items" id="scheduleItems">
+            <!-- Расписания будут отображаться здесь -->
+        </div>
+        
+        <button class="admin-panel-btn logout-btn" onclick="logoutSchedule()">
+            🚪 Выйти из расписания
+        </button>
+    </div>
+
+    <!-- Модалка создания расписания -->
+    <div id="createScheduleModal" class="modal">
+        <div class="modal-content">
+            <h3>📝 Создать расписание</h3>
+            <form onsubmit="return createSchedule()">
+                <div class="input-group">
+                    <input type="text" id="scheduleTitle" placeholder="Название расписания" required>
+                </div>
+                
+                <!-- Кнопка выбора даты -->
+                <div class="input-group">
+                    <button type="button" class="submit-btn" style="background: #FF9800;" onclick="showCalendar()">
+                        📅 Выбрать дату
+                    </button>
+                </div>
+                
+                <div id="selectedDateDisplay" class="date-display" style="display: none;">
+                    Выбранная дата: <span id="selectedDateText"></span>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="scheduleTime" placeholder="Время (например: 09:00-10:30)" required>
+                </div>
+                <div class="input-group">
+                    <textarea id="scheduleDescription" placeholder="Описание занятия"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Создать расписание</button>
+                <div id="scheduleSuccess" class="success">Расписание создано!</div>
+                <button type="button" class="submit-btn" style="background: #666; margin-top: 5px;" onclick="closeCreateScheduleModal()">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модалка календаря -->
+    <div id="calendarModal" class="modal">
+        <div class="modal-content">
+            <h3>📅 Выберите дату</h3>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="calendar-nav" onclick="changeMonth(-1)">◀</button>
+                    <h4 id="currentMonthYear"></h4>
+                    <button class="calendar-nav" onclick="changeMonth(1)">▶</button>
+                </div>
+                <table class="calendar-table">
+                    <thead>
+                        <tr>
+                            <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendarBody"></tbody>
+                </table>
+            </div>
+            <button type="button" class="submit-btn" style="background: #666; margin-top: 10px;" onclick="closeCalendar()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // Хранилища данных
+        let schedules = [];
+        let selectedDate = null;
+        let currentDate = new Date();
+        let currentYear = currentDate.getFullYear();
+        let currentMonth = currentDate.getMonth();
+
+        function showLogin() {
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.querySelector('#loginModal .password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = '👁️';
+            }
+        }
+
+        function checkLogin() {
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            
+            if (login === 'Valera_Admin' && password === 'Valera_Adminka231') {
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+                updateScheduleList();
+                return false;
+            } else {
+                document.getElementById('error').style.display = 'block';
+                return false;
+            }
+        }
+
+        function showCreateScheduleModal() {
+            document.getElementById('createScheduleModal').style.display = 'block';
+            selectedDate = null;
+            document.getElementById('selectedDateDisplay').style.display = 'none';
+        }
+
+        function closeCreateScheduleModal() {
+            document.getElementById('createScheduleModal').style.display = 'none';
+            document.getElementById('scheduleSuccess').style.display = 'none';
+            document.getElementById('scheduleTitle').value = '';
+            document.getElementById('scheduleTime').value = '';
+            document.getElementById('scheduleDescription').value = '';
+            selectedDate = null;
+        }
+
+        // Функции для календаря
+        function showCalendar() {
+            generateCalendar(currentYear, currentMonth);
+            document.getElementById('calendarModal').style.display = 'block';
+        }
+
+        function closeCalendar() {
+            document.getElementById('calendarModal').style.display = 'none';
+        }
+
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar(currentYear, currentMonth);
+        }
+
+        function generateCalendar(year, month) {
+            const monthNames = [
+                'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            ];
+            
+            document.getElementById('currentMonthYear').textContent = `${monthNames[month]} ${year}`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startingDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+            
+            let calendarHTML = '';
+            let date = 1;
+            
+            for (let i = 0; i < 6; i++) {
+                calendarHTML += '<tr>';
+                for (let j = 0; j < 7; j++) {
+                    if (i === 0 && j < startingDay) {
+                        const prevMonth = new Date(year, month, 0 - (startingDay - j - 1));
+                        calendarHTML += `<td class="other-month">${prevMonth.getDate()}</td>`;
+                    } else if (date > lastDay.getDate()) {
+                        const nextMonth = new Date(year, month + 1, date - lastDay.getDate());
+                        calendarHTML += `<td class="other-month">${nextMonth.getDate()}</td>`;
+                        date++;
+                    } else {
+                        const isSelected = selectedDate && 
+                                          selectedDate.getDate() === date && 
+                                          selectedDate.getMonth() === month && 
+                                          selectedDate.getFullYear() === year;
+                        
+                        calendarHTML += `<td onclick="selectDate(${date}, ${month}, ${year})" 
+                                            class="${isSelected ? 'selected' : ''}">${date}</td>`;
+                        date++;
+                    }
+                }
+                calendarHTML += '</tr>';
+                if (date > lastDay.getDate()) break;
+            }
+            
+            document.getElementById('calendarBody').innerHTML = calendarHTML;
+        }
+
+        function selectDate(day, month, year) {
+            selectedDate = new Date(year, month, day);
+            
+            // Форматируем дату в формат DD.MM.YYYY
+            const formattedDate = `${day.toString().padStart(2, '0')}.${(month + 1).toString().padStart(2, '0')}.${year}`;
+            
+            document.getElementById('selectedDateText').textContent = formattedDate;
+            document.getElementById('selectedDateDisplay').style.display = 'block';
+            closeCalendar();
+        }
+
+        function createSchedule() {
+            const title = document.getElementById('scheduleTitle').value;
+            const time = document.getElementById('scheduleTime').value;
+            const description = document.getElementById('scheduleDescription').value;
+            
+            let scheduleText = title;
+            
+            // Добавляем дату если она выбрана
+            if (selectedDate) {
+                const formattedDate = `${selectedDate.getDate().toString().padStart(2, '0')}.${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}.${selectedDate.getFullYear()}`;
+                scheduleText = `${formattedDate}\n${title}`;
+            }
+            
+            // Добавляем время
+            if (time) {
+                scheduleText += `\nВремя съёмки ${time}`;
+            }
+            
+            schedules.push({
+                title: scheduleText,
+                time: time,
+                description: description,
+                date: selectedDate ? selectedDate.toISOString() : null,
+                rawTitle: title,
+                rawDate: selectedDate ? `${selectedDate.getDate().toString().padStart(2, '0')}.${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}.${selectedDate.getFullYear()}` : null
+            });
+            
+            document.getElementById('scheduleSuccess').style.display = 'block';
+            updateScheduleList();
+            
+            setTimeout(() => {
+                closeCreateScheduleModal();
+            }, 2000);
+            
+            return false;
+        }
+
+        function updateScheduleList() {
+            // Обновляем список расписаний в админке
+            const scheduleList = document.getElementById('scheduleList');
+            if (schedules.length === 0) {
+                scheduleList.innerHTML = '<div class="schedule-item">Пока нет расписаний</div>';
+            } else {
+                scheduleList.innerHTML = schedules.map(schedule => 
+                    `<div class="schedule-item">
+                        <strong>${schedule.title.replace(/\n/g, '<br>')}</strong><br>
+                        ${schedule.description ? 'Описание: ' + schedule.description : ''}
+                    </div>`
+                ).join('');
+            }
+        }
+
+        function showSchedulePanel() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('schedulePanel').style.display = 'block';
+            displaySchedule();
+        }
+
+        function displaySchedule() {
+            const scheduleItems = document.getElementById('scheduleItems');
+            
+            if (schedules.length === 0) {
+                scheduleItems.innerHTML = '<div class="no-schedule">Расписаний пока нет</div>';
+            } else {
+                scheduleItems.innerHTML = schedules.map(schedule => {
+                    const lines = schedule.title.split('\n');
+                    const date = lines[0];
+                    const title = lines[1] || '';
+                    const time = lines[2] || '';
+                    
+                    return `
+                        <div class="schedule-card">
+                            <div class="schedule-date">${date}</div>
+                            <div class="schedule-title">${title}</div>
+                            <div class="schedule-time">${time}</div>
+                            ${schedule.description ? `<div class="schedule-description">${schedule.description}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function logoutAdmin() {
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
+        function logoutSchedule() {
+            document.getElementById('schedulePanel').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
+        // Закрытие модалок по клику вне их
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('loginModal')) {
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+            }
+            if (event.target === document.getElementById('createScheduleModal')) {
+                closeCreateScheduleModal();
+            }
+            if (event.target === document.getElementById('calendarModal')) {
+                closeCalendar();
+            }
+        }
+
+        // Инициализация календаря
+        generateCalendar(currentYear, currentMonth);
+    </script>
+</body>
+</html>
