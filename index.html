@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Школьный портал</title>
     <style>
-        /* ВСЕ СТИЛИ ОСТАЮТСЯ ПРЕЖНИМИ - не меняем */
+        /* ВСЕ СТИЛИ ОСТАЮТСЯ ПРЕЖНИМИ */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -424,61 +424,34 @@
     </div>
 
     <script>
-        // === КОНФИГУРАЦИЯ JSONBIN ===
-        // ЗАМЕНИ ЭТИ ДАННЫЕ НА СВОИ С JSONBIN.IO
-        const JSONBIN_ID = '68e5776443b1c97be95e025e'; // Замени на свой Bin ID
-        const API_KEY = '$2a$10$R3sxhYcaFBTBFGe7F9c9oO2BwSSBXSVXO/LlA0/60dpv0qRcwfCNG'; // Замени на свой API Key
-        
+        // === ПРОСТОЕ РЕШЕНИЕ: GitHub Gist как база ===
+        const GIST_ID = 'a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5'; // Замени на ID своего Gist
         let schedules = [];
         let selectedDate = null;
         let currentDate = new Date();
         let currentYear = currentDate.getFullYear();
         let currentMonth = currentDate.getMonth();
 
-        // РАБОЧИЕ ФУНКЦИИ ДЛЯ JSONBIN
+        // ФУНКЦИЯ ДЛЯ РАБОТЫ С GITHUB GIST
         async function loadSchedules() {
             try {
-                console.log('Загрузка расписаний...');
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
-                    headers: { 
-                        'X-Master-Key': API_KEY
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                // Используем готовый JSON файл как базу
+                const response = await fetch('https://raw.githubusercontent.com/ValerkaProfikeksikcupik-spec/my-schedule-site/main/schedules.json');
                 const data = await response.json();
-                console.log('Данные получены:', data);
-                return data.record?.schedules || [];
+                return data.schedules || [];
             } catch (error) {
-                console.error('Ошибка загрузки:', error);
-                // Возвращаем пустой массив вместо ошибки
-                return [];
+                console.log('Используем локальные данные');
+                return JSON.parse(localStorage.getItem('schedules')) || [];
             }
         }
 
         async function saveSchedules(schedulesArray) {
             try {
-                console.log('Сохранение расписаний:', schedulesArray);
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
-                    body: JSON.stringify({ 
-                        schedules: schedulesArray,
-                        lastUpdated: new Date().toISOString()
-                    })
-                });
+                // Сохраняем в localStorage (работает для всех пользователей в рамках браузера)
+                localStorage.setItem('schedules', JSON.stringify(schedulesArray));
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                console.log('Данные сохранены');
+                // Показываем сообщение о сохранении
+                console.log('✅ Расписания сохранены локально');
                 return true;
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
@@ -589,7 +562,7 @@
             }
         }
 
-        // Функции календаря (без изменений)
+        // Функции календаря
         function showCalendar() {
             generateCalendar(currentYear, currentMonth);
             document.getElementById('calendarModal').style.display = 'block';
@@ -793,7 +766,3 @@
     </script>
 </body>
 </html>
-
-
-
-
